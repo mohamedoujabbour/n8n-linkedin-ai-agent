@@ -25,3 +25,5 @@ This workflow automates the entire lifecycle of creating professional LinkedIn c
 * **Telegram Bot API** (Triggers & Human-in-the-Loop Approval)
 * **LinkedIn API** (Publishing)
 * **Webhooks**
+##  Workflow Preview
+![Workflow Screenshot](workflow-screenshot.png)
