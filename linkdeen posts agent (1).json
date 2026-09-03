@@ -1,0 +1,357 @@
+{
+  "name": "linkdeen posts agent",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.tavily.com/search",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer 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"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"query\": \"{{ $json.message.text }}\",\n  \"search_depth\": \"basic\",\n  \"chunks_per_source\": 3,\n  \"max_results\": 1,\n  \"topic\": \"general\",\n  \"time_range\": null,\n  \"start_date\": \"2025-02-09\",\n  \"end_date\": \"2025-12-29\",\n  \"include_answer\": false,\n  \"include_raw_content\": false,\n  \"include_images\": false,\n  \"include_image_descriptions\": false,\n  \"include_favicon\": false,\n  \"include_domains\": [],\n  \"exclude_domains\": [],\n  \"country\": null,\n  \"auto_parameters\": false,\n  \"exact_match\": false,\n  \"include_usage\": false,\n  \"safe_search\": false\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        256,
+        -48
+      ],
+      "id": "a68e2b0c-13c8-478b-86d4-f5be1a6bc582",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an expert LinkedIn content writer specializing in punchy, highly engaging, and professional posts.\n\nYour mission is to write a concise, professional LinkedIn article based on the following input data:\n\n- Topic/Subject: {{ $json[\"query\"] }}\n- Reference Content/Research: {{ $json[\"results\"][0][\"content\"] }}\n\n---\n\n### Strict Formatting & Style Rules:\n\n1. **Length & Tone:**\n   - Keep it short, punchy, and easy to read on mobile devices.\n   - Professional, insightful, and authoritative, but direct and to the point.\n   - Use short paragraphs (1-3 sentences max).\n\n2. **Single Title Selection:**\n   - DO NOT provide multiple title options or list \"Title Options:\".\n   - Pick the single best, most compelling title and put it at the very top.\n\n3. **No Heading Markdown (NO '###'):**\n   - DO NOT use Markdown headings like '###' or '##'.\n   - Use relevant professional emojis (e.g., 🚀, 💡, 📊, 🎯, ⚙️) as section dividers/bullet headers instead of Markdown symbols.\n\n4. **Article Structure:**\n   - **Title:** One strong, attention-grabbing headline.\n   - **Hook:** A brief 2-sentence opening stating the core problem or insight.\n   - **Core Content:** Use emojis to lead distinct sections and bullet points to break down key ideas quickly.\n   - **Key Takeaway:** A 1-2 sentence quick summary.\n   - **Call to Action (CTA):** End with a single clear question to invite discussion in the comments.\n   - **Hashtags:** Include 3-4 relevant hashtags at the bottom.\n\n5. **Output Constraint:**\n   - Return ONLY the final formatted LinkedIn post text—no preambles or meta commentary.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        496,
+        -48
+      ],
+      "id": "b2629781-400f-481b-81ab-5e66630bef16",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        432,
+        176
+      ],
+      "id": "4b4292a9-fae7-4075-8227-f64c67b97da0",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Tajd35DUDegHbXvg",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        -48
+      ],
+      "id": "31a7e9f5-2ec5-489c-9fed-adfca266b2fe",
+      "name": "Telegram Trigger",
+      "webhookId": "e66ee197-d85e-495a-8282-01a7f0af2313",
+      "credentials": {
+        "telegramApi": {
+          "id": "oLM2KdblPGdFYgsX",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "✅ Approve",
+                    "additionalFields": {
+                      "callback_data": "approve"
+                    }
+                  },
+                  {
+                    "text": "❌ Reject",
+                    "additionalFields": {
+                      "callback_data": "reject"
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {
+          "appendAttribution": false,
+          "parse_mode": "HTML"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        912,
+        -48
+      ],
+      "id": "fc277ddd-0be5-4376-b526-38cc4ab17299",
+      "name": "Send a text message",
+      "webhookId": "2241bb6b-d087-4bd0-9c7e-0c6a7600ba55",
+      "credentials": {
+        "telegramApi": {
+          "id": "oLM2KdblPGdFYgsX",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.callback_query.data }}",
+                    "rightValue": "approve",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "2b609d34-70b9-4c13-a57a-ea6444cdf7e8"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Approve"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "5ed3c6af-02d1-4b67-9d6b-74fc4de46e1e",
+                    "leftValue": "={{ $json.callback_query.data }}",
+                    "rightValue": "reject",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Reject"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        416,
+        384
+      ],
+      "id": "b6b5640b-1172-4487-81ca-1c7220abc512",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "callback_query"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        384
+      ],
+      "id": "ca03ada0-e2cc-44ba-9b92-fe64ac676365",
+      "name": "Telegram Trigger1",
+      "webhookId": "b25a8c8a-2737-441c-bc31-9ec1695c9192",
+      "credentials": {
+        "telegramApi": {
+          "id": "K7vD9cStV2ks1EZ7",
+          "name": "Telegram account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "person": "DBp67J9wG4",
+        "text": "={{ $json.callback_query.message.text }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.linkedIn",
+      "typeVersion": 1,
+      "position": [
+        928,
+        368
+      ],
+      "id": "7d8ec0a5-b624-4087-aa32-05ae0567d303",
+      "name": "Create a post",
+      "credentials": {
+        "linkedInOAuth2Api": {
+          "id": "AW8ZbgMmlG2fDRVz",
+          "name": "LinkedIn account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        560,
+        176
+      ],
+      "id": "8926b0ed-3e85-4e91-8d93-11f160ba280e",
+      "name": "Simple Memory"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        []
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Create a post",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Telegram Trigger1": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "0de17b86-395d-4c9d-9653-66d9e2f38477",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "32996da728c34c04920add68181222108327f4af18238744fe78bfbd87141ec1"
+  },
+  "nodeGroups": [],
+  "id": "i6T7jp1FGs2o6JH0",
+  "tags": []
+}
